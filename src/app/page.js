@@ -25,7 +25,9 @@ export default function Home() {
         throw new Error('Input must be a JSON array.');
       }
 
-      const res = await fetch('/bfhl', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/bfhl';
+      
+      const res = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

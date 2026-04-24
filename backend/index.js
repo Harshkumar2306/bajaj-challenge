@@ -1,9 +1,15 @@
-import { NextResponse } from 'next/server';
+const express = require('express');
+const cors = require('cors');
 
-export async function POST(request) {
+const app = express();
+const PORT = process.env.PORT || 8080;
+
+app.use(cors());
+app.use(express.json());
+
+app.post('/bfhl', (req, res) => {
   try {
-    const body = await request.json();
-    const data = body.data || [];
+    const data = req.body.data || [];
 
     const userId = "harshkumar_23062006";
     const emailId = "harsh_kumar@srmap.edu.in";
@@ -23,13 +29,11 @@ export async function POST(request) {
       
       const edge = rawEdge.trim();
       
-      // Regex check: X->Y where X and Y are single uppercase letters
       if (!/^[A-Z]->[A-Z]$/.test(edge)) {
         invalidEntries.push(rawEdge);
         continue;
       }
 
-      // Self-loop check
       if (edge[0] === edge[3]) {
         invalidEntries.push(rawEdge);
         continue;
@@ -43,9 +47,8 @@ export async function POST(request) {
       }
     }
 
-    // 2. Tree Construction Preparation
-    const parentMap = {}; // child -> parent
-    const childrenMap = {}; // parent -> children
+    const parentMap = {}; 
+    const childrenMap = {}; 
     const nodes = new Set();
 
     for (const edge of validEdges) {
@@ -55,7 +58,7 @@ export async function POST(request) {
       nodes.add(v);
 
       if (!childrenMap[u]) childrenMap[u] = [];
-      if (!childrenMap[v]) childrenMap[v] = []; // initialize array for all nodes
+      if (!childrenMap[v]) childrenMap[v] = [];
       
       if (!parentMap[v]) {
         parentMap[v] = u;
@@ -63,7 +66,6 @@ export async function POST(request) {
       }
     }
 
-    // 3. Find connected components (groups) based on valid edges
     const undirectedAdj = {};
     for (const node of nodes) undirectedAdj[node] = [];
     for (const edge of validEdges) {
@@ -95,7 +97,6 @@ export async function POST(request) {
       }
     }
 
-    // Tree builder helper
     const buildTree = (node) => {
       const tree = {};
       for (const child of childrenMap[node] || []) {
@@ -104,7 +105,6 @@ export async function POST(request) {
       return tree;
     };
 
-    // Depth helper
     const getDepth = (node) => {
       let maxChildDepth = 0;
       for (const child of childrenMap[node] || []) {
@@ -120,17 +120,15 @@ export async function POST(request) {
     let maxDepth = 0;
 
     for (const group of groups) {
-      // Find root in this group
       let root = null;
       for (const node of group) {
         if (!parentMap[node]) {
           root = node;
-          break; // Max in-degree is 1, so there is at most 1 root per connected component
+          break; 
         }
       }
 
       if (root) {
-        // It's a tree
         const treeStruct = {};
         treeStruct[root] = buildTree(root);
         const depth = getDepth(root);
@@ -152,7 +150,6 @@ export async function POST(request) {
           }
         }
       } else {
-        // It's a cycle
         let smallest = group[0];
         for (const node of group) {
           if (node < smallest) smallest = node;
@@ -168,7 +165,7 @@ export async function POST(request) {
       }
     }
 
-    return NextResponse.json({
+    res.json({
       user_id: userId,
       email_id: emailId,
       college_roll_number: collegeRollNumber,
@@ -183,6 +180,15 @@ export async function POST(request) {
     });
 
   } catch (error) {
-    return NextResponse.json({ error: "Invalid JSON format" }, { status: 400 });
+    res.status(400).json({ error: "Invalid JSON format" });
   }
-}
+});
+
+// GET route for testing
+app.get('/bfhl', (req, res) => {
+  res.status(200).json({ operation_code: 1 });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
