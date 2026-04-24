@@ -25,7 +25,7 @@ export default function Home() {
         throw new Error('Input must be a JSON array.');
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/bfhl';
+      const API_URL = 'https://bajaj-challenge-g0fh.onrender.com/bfhl';
       
       const res = await fetch(API_URL, {
         method: 'POST',
